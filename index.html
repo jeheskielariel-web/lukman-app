@@ -1240,7 +1240,8 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: var(--bg);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, #B80D1E 50%, var(--primary-dark) 100%);
+  color: #fff;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: calc(40px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
@@ -1250,8 +1251,20 @@ body::before {
 }
 .login-overlay[hidden] { display: none !important }
 .login-card { max-width: 400px; margin: 0 auto; width: 100%; }
-.login-logo { text-align: center; font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
-.login-tagline { text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+.login-hero { text-align: center; margin-bottom: 22px; }
+.login-logo-img { height: 42px; width: auto; filter: brightness(0) invert(1); opacity: 0.95; margin-bottom: 10px; }
+.login-title { font-size: 34px; font-weight: 800; margin: 0; letter-spacing: 1px; color: #fff; text-wrap: balance; }
+.login-acronym { font-size: 12.5px; font-weight: 600; opacity: .85; margin-top: 4px; font-style: italic; }
+.login-acronym b { font-style: normal; text-decoration: underline; text-underline-offset: 2px; }
+.login-godspeed { font-size: 15px; font-weight: 700; opacity: .92; margin-top: 10px; letter-spacing: .3px; }
+.login-form-panel {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow-lg);
+}
+.login-footer { text-align: center; margin-top: 22px; font-size: 11.5px; font-weight: 700; letter-spacing: .5px; opacity: .85; line-height: 1.7; }
 .login-tabs { display: flex; gap: 8px; margin-bottom: 18px; background: var(--surface-alt); border-radius: var(--radius-pill); padding: 4px; }
 .login-tab { flex: 1; text-align: center; padding: 9px; border: none; background: none; border-radius: var(--radius-pill); font-family: var(--font); font-size: 13px; font-weight: 700; color: var(--text-secondary); cursor: pointer; }
 .login-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
@@ -1269,7 +1282,9 @@ body::before {
 .login-submit:active { transform: scale(.98); }
 .login-submit:disabled { opacity: .5; }
 .login-error { color: var(--danger); font-size: 12.5px; margin-top: 8px; text-align: center; min-height: 16px; }
-.login-hint { font-size: 11.5px; color: var(--text-muted); text-align: center; margin-top: 16px; line-height: 1.5; }
+.login-success { color: var(--success); font-size: 12.5px; margin-top: -2px; text-align: center; min-height: 16px; }
+.login-forgot-link { text-align: center; font-size: 12.5px; font-weight: 700; color: var(--primary); margin-top: 12px; cursor: pointer; }
+.login-forgot-link:active { opacity: .7; }
 
 /* User bar */
 .user-bar {
@@ -1301,7 +1316,13 @@ body::before {
 .rank-table th { text-align: left; padding: 8px 6px; color: var(--text-secondary); font-weight: 700; font-size: 11px; border-bottom: 2px solid var(--border); white-space: nowrap; }
 .rank-table td { padding: 9px 6px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rank-table tr:first-child td { font-weight: 800; color: var(--primary); }
+.rank-row-clickable { cursor: pointer; }
+.rank-row-clickable:active { background: var(--primary-light); }
 .prog-tally-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.back-link { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 14px; cursor: pointer; }
+.back-link:active { opacity: .7; }
+.hist-row-del { margin-top: 10px; width: 100%; padding: 9px; background: none; border: 1.5px solid var(--danger); color: var(--danger); border-radius: var(--radius-sm); font-family: var(--font); font-size: 12px; font-weight: 700; cursor: pointer; }
+.hist-row-del:active { background: var(--danger); color: #fff; }
 .save-tx-box { background: var(--surface); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
 .save-tx-box label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
 .save-tx-box input { width: 100%; padding: 11px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: var(--font); font-size: 14px; margin-bottom: 10px; box-sizing: border-box; }
@@ -1316,47 +1337,84 @@ body::before {
 
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
-    <div class="login-logo">L.U.K.M.A.N</div>
-    <div class="login-tagline">Masuk untuk mulai menghitung &amp; melihat rangkuman hasil</div>
-
-    <div class="login-tabs" id="loginTabs">
-      <button class="login-tab active" data-tab="existing">Pengguna Terdaftar</button>
-      <button class="login-tab" data-tab="new">Daftar Baru</button>
+    <div class="login-hero">
+      <img class="login-logo-img" id="loginLogoImg" alt="Mayora">
+      <h1 class="login-title">L.U.K.M.A.N</h1>
+      <div class="login-acronym">a<b>L</b>at <b>U</b>kur <b>K</b>alkulasi progra<b>M</b> <b>AN</b>dalan</div>
+      <div class="login-godspeed">Godspeed, lads!</div>
+      <div class="quote-box" id="loginQuoteBox">
+        <span class="quote-icon">&#x1F4AC;</span>
+        <p class="quote-text" id="loginQuoteText"></p>
+      </div>
     </div>
 
-    <div id="loginExistingForm">
-      <div class="login-field">
-        <label>Nama</label>
-        <select id="loginSelectName"><option value="">— pilih nama —</option></select>
+    <div class="login-form-panel">
+      <div class="login-tabs" id="loginTabs">
+        <button class="login-tab active" data-tab="existing">Pengguna Terdaftar</button>
+        <button class="login-tab" data-tab="new">Daftar Baru</button>
       </div>
-      <div class="login-field">
-        <label>PIN</label>
-        <input type="password" inputmode="numeric" maxlength="6" id="loginPinInput" placeholder="4-6 digit PIN">
-      </div>
-      <button class="login-submit" id="btnLoginExisting">Masuk</button>
-    </div>
 
-    <div id="loginNewForm" hidden>
-      <div class="login-field">
-        <label>Nama Lengkap</label>
-        <input type="text" id="regNameInput" placeholder="cth. Jeheskiel Ariel">
-      </div>
-      <div class="login-field">
-        <label>Peran</label>
-        <div class="login-role-pick" id="regRolePick">
-          <button type="button" class="login-role-btn active" data-role="sales">Sales</button>
-          <button type="button" class="login-role-btn" data-role="supervisor">Supervisor</button>
+      <div id="loginExistingForm">
+        <div class="login-field">
+          <label>Nama</label>
+          <select id="loginSelectName"><option value="">— pilih nama —</option></select>
         </div>
+        <div class="login-field">
+          <label>PIN</label>
+          <input type="password" inputmode="numeric" maxlength="6" id="loginPinInput" placeholder="4-6 digit PIN">
+        </div>
+        <button class="login-submit" id="btnLoginExisting">Masuk</button>
+        <div class="login-forgot-link" id="btnShowResetPin">Lupa PIN?</div>
       </div>
-      <div class="login-field">
-        <label>Buat PIN (4-6 digit)</label>
-        <input type="password" inputmode="numeric" maxlength="6" id="regPinInput" placeholder="buat PIN baru">
+
+      <div id="loginNewForm" hidden>
+        <div class="login-field">
+          <label>Nama Lengkap</label>
+          <input type="text" id="regNameInput" placeholder="cth. Jeheskiel Ariel">
+        </div>
+        <div class="login-field">
+          <label>Peran</label>
+          <div class="login-role-pick" id="regRolePick">
+            <button type="button" class="login-role-btn active" data-role="sales">Sales</button>
+            <button type="button" class="login-role-btn" data-role="supervisor">Supervisor</button>
+          </div>
+        </div>
+        <div class="login-field">
+          <label>Key Akses Supervisor</label>
+          <input type="password" id="regAccessKeyInput" placeholder="minta key ke supervisor">
+        </div>
+        <div class="login-field">
+          <label>Buat PIN (4-6 digit)</label>
+          <input type="password" inputmode="numeric" maxlength="6" id="regPinInput" placeholder="buat PIN baru">
+        </div>
+        <button class="login-submit" id="btnRegister">Daftar &amp; Masuk</button>
       </div>
-      <button class="login-submit" id="btnRegister">Daftar &amp; Masuk</button>
+
+      <div id="loginResetForm" hidden>
+        <div class="login-field">
+          <label>Nama</label>
+          <select id="resetSelectName"><option value="">— pilih nama —</option></select>
+        </div>
+        <div class="login-field">
+          <label>Key Akses Supervisor</label>
+          <input type="password" id="resetAccessKeyInput" placeholder="minta key ke supervisor">
+        </div>
+        <div class="login-field">
+          <label>PIN Baru (4-6 digit)</label>
+          <input type="password" inputmode="numeric" maxlength="6" id="resetNewPinInput" placeholder="PIN baru">
+        </div>
+        <button class="login-submit" id="btnResetPin">Reset PIN</button>
+        <div class="login-forgot-link" id="btnCancelResetPin">Batal, kembali masuk</div>
+      </div>
+
+      <div class="login-error" id="loginError"></div>
+      <div class="login-success" id="loginSuccessMsg"></div>
     </div>
 
-    <div class="login-error" id="loginError"></div>
-    <div class="login-hint">Data riwayat &amp; rangkuman tersimpan bersama untuk tim ini. PIN hanya untuk memisahkan identitas, bukan keamanan tingkat tinggi.</div>
+    <div class="login-footer">
+      <div>M3 Lenteng Agung</div>
+      <div>#MoreThanATeam</div>
+    </div>
   </div>
 </div>
 
@@ -1583,6 +1641,12 @@ function slugName(name) {
 
 function setLoginError(msg) {
   document.getElementById('loginError').textContent = msg || '';
+  if (msg) document.getElementById('loginSuccessMsg').textContent = '';
+}
+
+function setLoginSuccess(msg) {
+  document.getElementById('loginSuccessMsg').textContent = msg || '';
+  if (msg) document.getElementById('loginError').textContent = '';
 }
 
 // Low-level call to the Apps Script API. Always POST with a JSON body and
@@ -1654,6 +1718,7 @@ window.addEventListener('online', flushOutbox);
 function initAuth() {
   rosterCache = loadLocal('lukman_roster_cache', []);
   renderLoginRosterOptions();
+  setLoginLogo();
 
   // Refresh the roster from the server in the background — never blocks the screen.
   apiCall('listRoster', {}, 6000).then(data => {
@@ -1673,24 +1738,66 @@ function initAuth() {
 
   document.getElementById('loginOverlay').hidden = false;
   document.getElementById('mainApp').hidden = true;
+  startLoginQuoteRotation();
+}
+
+// Mirrors the header's Mayora logo onto the login screen (avoids duplicating
+// the embedded image data a second time in the file).
+function setLoginLogo() {
+  const headerLogo = document.querySelector('.app-header .mayora-logo');
+  const loginLogo = document.getElementById('loginLogoImg');
+  if (headerLogo && loginLogo) loginLogo.src = headerLogo.src;
+}
+
+// Rotating sales quote on the login screen, same QUOTES list used in the
+// product-catalog header — picks a random one to start, then cycles every
+// few seconds while the login screen is showing.
+let loginQuoteIndex = Math.floor(Math.random() * QUOTES.length);
+let loginQuoteTimer = null;
+function renderLoginQuote() {
+  const el = document.getElementById('loginQuoteText');
+  if (!el) return;
+  const q = QUOTES[loginQuoteIndex];
+  el.innerHTML = `&ldquo;${q.text}&rdquo;<span class="quote-author">&mdash; ${q.author}</span>`;
+}
+function startLoginQuoteRotation() {
+  renderLoginQuote();
+  if (loginQuoteTimer) clearInterval(loginQuoteTimer);
+  loginQuoteTimer = setInterval(() => {
+    const el = document.getElementById('loginQuoteText');
+    if (!el) return;
+    el.classList.add('quote-swap');
+    setTimeout(() => {
+      loginQuoteIndex = (loginQuoteIndex + 1) % QUOTES.length;
+      renderLoginQuote();
+      el.classList.remove('quote-swap');
+    }, 450);
+  }, 7000);
+}
+function stopLoginQuoteRotation() {
+  if (loginQuoteTimer) { clearInterval(loginQuoteTimer); loginQuoteTimer = null; }
 }
 
 function renderLoginRosterOptions() {
-  const sel = document.getElementById('loginSelectName');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— pilih nama —</option>';
-  rosterCache.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(u => {
-    const opt = document.createElement('option');
-    opt.value = u.id;
-    opt.textContent = `${u.name} (${u.role === 'supervisor' ? 'Supervisor' : 'Sales'})`;
-    sel.appendChild(opt);
+  ['loginSelectName', 'resetSelectName'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— pilih nama —</option>';
+    rosterCache.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = `${u.name} (${u.role === 'supervisor' ? 'Supervisor' : 'Sales'})`;
+      sel.appendChild(opt);
+    });
+    sel.value = current;
   });
-  sel.value = current;
 }
 
 function loginSuccess(id, name, role) {
   currentUser = { id, name, role };
   saveLocal('lukman_user', { id, name, role });
+  stopLoginQuoteRotation();
   document.getElementById('loginOverlay').hidden = true;
   document.getElementById('mainApp').hidden = false;
   const userBar = document.getElementById('userBar');
@@ -1732,8 +1839,10 @@ async function attemptLoginExisting() {
 async function attemptRegister() {
   setLoginError('');
   const name = document.getElementById('regNameInput').value.trim();
+  const accessKey = document.getElementById('regAccessKeyInput').value.trim();
   const pin = document.getElementById('regPinInput').value.trim();
   if (!name) { setLoginError('Masukkan nama lengkap.'); return; }
+  if (!accessKey) { setLoginError('Masukkan key akses supervisor untuk mendaftar.'); return; }
   if (!/^\d{4,6}$/.test(pin)) { setLoginError('PIN harus 4-6 digit angka.'); return; }
   const id = slugName(name);
   if (rosterCache.some(u => u.id === id)) {
@@ -1743,14 +1852,59 @@ async function attemptRegister() {
   const btn = document.getElementById('btnRegister');
   btn.disabled = true;
   try {
-    const data = await apiCall('register', { id, name, role: regRole, pin }, 8000);
+    const data = await apiCall('register', { id, name, role: regRole, pin, accessKey }, 8000);
     rosterCache.push(data.user);
     saveLocal('lukman_roster_cache', rosterCache);
     loginSuccess(data.user.id, data.user.name, data.user.role);
   } catch (e) {
-    setLoginError(e.message === 'Nama sudah terdaftar' ? 'Nama ini sudah terdaftar di server. Masuk lewat tab "Pengguna Terdaftar".' : 'Gagal mendaftar — periksa koneksi internet, lalu coba lagi.');
+    const msg = e.message === 'Nama sudah terdaftar' ? 'Nama ini sudah terdaftar di server. Masuk lewat tab "Pengguna Terdaftar".'
+      : e.message === 'Key akses salah' ? 'Key akses salah. Minta key yang benar ke supervisor.'
+      : 'Gagal mendaftar — periksa koneksi internet, lalu coba lagi.';
+    setLoginError(msg);
   }
   btn.disabled = false;
+}
+
+async function attemptResetPin() {
+  setLoginError('');
+  const id = document.getElementById('resetSelectName').value;
+  const accessKey = document.getElementById('resetAccessKeyInput').value.trim();
+  const newPin = document.getElementById('resetNewPinInput').value.trim();
+  if (!id) { setLoginError('Pilih nama terlebih dahulu.'); return; }
+  if (!accessKey) { setLoginError('Masukkan key akses supervisor.'); return; }
+  if (!/^\d{4,6}$/.test(newPin)) { setLoginError('PIN baru harus 4-6 digit angka.'); return; }
+  const btn = document.getElementById('btnResetPin');
+  btn.disabled = true;
+  try {
+    await apiCall('resetPin', { id, accessKey, newPin }, 8000);
+    const idx = rosterCache.findIndex(u => u.id === id);
+    if (idx >= 0) {
+      rosterCache[idx] = Object.assign({}, rosterCache[idx], { pin: newPin });
+      saveLocal('lukman_roster_cache', rosterCache);
+    }
+    document.getElementById('resetAccessKeyInput').value = '';
+    document.getElementById('resetNewPinInput').value = '';
+    document.getElementById('resetSelectName').value = '';
+    showResetPinPanel(false);
+    setLoginSuccess('PIN berhasil direset. Silakan masuk dengan PIN baru.');
+  } catch (e) {
+    const msg = e.message === 'Key akses salah' ? 'Key akses salah.'
+      : e.message === 'Pengguna tidak ditemukan' ? 'Pengguna tidak ditemukan.'
+      : 'Gagal reset PIN — periksa koneksi internet, lalu coba lagi.';
+    setLoginError(msg);
+  }
+  btn.disabled = false;
+}
+
+function showResetPinPanel(show) {
+  document.getElementById('loginTabs').hidden = show;
+  document.getElementById('loginExistingForm').hidden = show;
+  document.getElementById('loginNewForm').hidden = true;
+  document.getElementById('loginResetForm').hidden = !show;
+  if (!show) {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'existing'));
+  }
+  setLoginError('');
 }
 
 function logoutUser() {
@@ -1762,6 +1916,42 @@ function logoutUser() {
   document.getElementById('loginPinInput').value = '';
   document.getElementById('loginSelectName').value = '';
   setLoginError('');
+  startLoginQuoteRotation();
+}
+
+function todayStr() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatVisitDate(t) {
+  // Prefer the user-picked visit date (stored as YYYY-MM-DD) over the raw
+  // save timestamp, so the history reads by the day the store was actually
+  // visited, not the moment the device happened to sync.
+  if (t.visitDate) {
+    const [y, m, d] = t.visitDate.split('-').map(Number);
+    if (y && m && d) return new Date(y, m - 1, d).toLocaleDateString('id-ID', { dateStyle: 'medium' });
+  }
+  return t.createdAt ? new Date(t.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+}
+
+// Toko-name suggestions: distinct store names this sales rep has saved
+// before (from the local history cache), most-recently-used first — so
+// typing "si" surfaces "Toko Sinar Jaya" again on a repeat visit.
+function getTokoSuggestions() {
+  if (!currentUser) return [];
+  const localTx = loadLocal('lukman_my_tx', []).filter(t => t.salesId === currentUser.id);
+  const seen = new Set();
+  const names = [];
+  localTx.forEach(t => {
+    if (t.toko && !seen.has(t.toko)) { seen.add(t.toko); names.push(t.toko); }
+  });
+  return names.slice(0, 50);
 }
 
 // "Simpan ke Riwayat" is optimistic: it writes to a local history cache
@@ -1772,6 +1962,8 @@ function saveTransaction() {
   if (!currentUser || !lastCalc) return;
   const tokoInput = document.getElementById('txTokoInput');
   const toko = tokoInput.value.trim();
+  const dateInput = document.getElementById('txDateInput');
+  const visitDate = (dateInput && dateInput.value) ? dateInput.value : todayStr();
   const msg = document.getElementById('saveTxMsg');
   const btn = document.getElementById('btnSaveTx');
   if (!toko) {
@@ -1790,6 +1982,7 @@ function saveTransaction() {
     totalAfter: lastCalc.grandAfter,
     programs: lastCalc.programs,
     pkgName: lastCalc.pkgName,
+    visitDate,
     createdAt: new Date().toISOString(),
   };
 
@@ -1859,7 +2052,7 @@ function renderMyHistory(txns) {
     html += `<div class="hist-empty">Belum ada transaksi tersimpan. Hitung dan simpan hasil untuk mulai mencatat riwayat.</div>`;
   } else {
     txns.forEach(t => {
-      const date = t.createdAt ? new Date(t.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+      const date = formatVisitDate(t);
       html += `<div class="hist-row">
         <div class="hist-row-top"><span class="hist-row-toko">${t.toko}</span><span class="hist-row-date">${date}</span></div>
         <div class="hist-row-mid"><span>Total: ${FMT(t.totalAfter)}</span><span>Potongan: -${FMT(t.totalDiscount)}</span></div>
@@ -1869,6 +2062,11 @@ function renderMyHistory(txns) {
   el.innerHTML = html;
 }
 
+// Holds the dashboard's last-fetched transactions in memory so the
+// per-sales breakdown (and delete) can filter/re-render instantly without
+// another round-trip to the server.
+let lastDashboardTx = [];
+
 async function openDashboard() {
   document.getElementById('historyOverlay').hidden = false;
   document.getElementById('historyTitle').textContent = 'Dashboard Tim';
@@ -1876,7 +2074,8 @@ async function openDashboard() {
   el.innerHTML = '<div class="hist-empty">Memuat...</div>';
   try {
     const data = await apiCall('listTransactions', {}, 10000);
-    renderDashboard(data.transactions || []);
+    lastDashboardTx = data.transactions || [];
+    renderDashboard(lastDashboardTx);
   } catch (e) {
     el.innerHTML = '<div class="hist-empty">Gagal memuat data tim — periksa koneksi internet, lalu buka lagi.</div>';
   }
@@ -1884,6 +2083,7 @@ async function openDashboard() {
 
 function renderDashboard(txns) {
   const el = document.getElementById('historyContent');
+  document.getElementById('historyTitle').textContent = 'Dashboard Tim';
   const bySales = {};
   txns.forEach(t => {
     const key = t.salesName || 'Tidak diketahui';
@@ -1902,7 +2102,7 @@ function renderDashboard(txns) {
     <div class="sum-card"><div class="sum-card-label">Total Potongan Tim</div><div class="sum-card-value">${FMT(totalDiskon)}</div></div>
   </div>`;
 
-  html += `<div class="hist-section-title">Peringkat Sales (berdasar Omset)</div>`;
+  html += `<div class="hist-section-title">Peringkat Sales (berdasar Omset) — ketuk nama untuk rincian</div>`;
   if (ranking.length === 0) {
     html += `<div class="hist-empty">Belum ada transaksi tersimpan dari tim.</div>`;
   } else {
@@ -1910,7 +2110,7 @@ function renderDashboard(txns) {
       <th>Sales</th><th>Toko</th><th>Omset</th><th>Potongan</th>
     </tr></thead><tbody>`;
     ranking.forEach(([name, d]) => {
-      html += `<tr><td>${name}</td><td>${d.toko.size}</td><td>${FMT(d.omset)}</td><td>${FMT(d.diskon)}</td></tr>`;
+      html += `<tr class="rank-row-clickable" data-action="breakdown" data-sales="${escAttr(name)}"><td>${name}</td><td>${d.toko.size}</td><td>${FMT(d.omset)}</td><td>${FMT(d.diskon)}</td></tr>`;
     });
     html += `</tbody></table></div>`;
   }
@@ -1925,6 +2125,55 @@ function renderDashboard(txns) {
     });
   }
   el.innerHTML = html;
+}
+
+// Per-sales drill-down for the supervisor dashboard: shows that one
+// sales rep's own transactions (newest visit first) with a delete button
+// on each row, in case of a mis-entered visit.
+function renderSalesBreakdown(salesName) {
+  const el = document.getElementById('historyContent');
+  document.getElementById('historyTitle').textContent = `Rincian — ${salesName}`;
+  const txns = lastDashboardTx
+    .filter(t => (t.salesName || 'Tidak diketahui') === salesName)
+    .sort((a, b) => (b.visitDate || b.createdAt || '').localeCompare(a.visitDate || a.createdAt || ''));
+  const totalOmset = txns.reduce((s, t) => s + (t.totalAfter || 0), 0);
+  const totalDiskon = txns.reduce((s, t) => s + (t.totalDiscount || 0), 0);
+  const tokoSet = new Set(txns.map(t => t.toko));
+
+  let html = `<div class="back-link" data-action="back-to-ranking">&larr; Kembali ke Peringkat</div>`;
+  html += `<div class="sum-cards">
+    <div class="sum-card"><div class="sum-card-label">Omset</div><div class="sum-card-value">${FMT(totalOmset)}</div></div>
+    <div class="sum-card"><div class="sum-card-label">Potongan</div><div class="sum-card-value">${FMT(totalDiskon)}</div></div>
+    <div class="sum-card"><div class="sum-card-label">Toko Dilayani</div><div class="sum-card-value">${tokoSet.size}</div></div>
+    <div class="sum-card"><div class="sum-card-label">Jumlah Transaksi</div><div class="sum-card-value">${txns.length}</div></div>
+  </div>`;
+
+  html += `<div class="hist-section-title">Riwayat Transaksi</div>`;
+  if (txns.length === 0) {
+    html += `<div class="hist-empty">Belum ada transaksi tersimpan untuk sales ini.</div>`;
+  } else {
+    txns.forEach(t => {
+      const date = formatVisitDate(t);
+      html += `<div class="hist-row">
+        <div class="hist-row-top"><span class="hist-row-toko">${t.toko}</span><span class="hist-row-date">${date}</span></div>
+        <div class="hist-row-mid"><span>Total: ${FMT(t.totalAfter)}</span><span>Potongan: -${FMT(t.totalDiscount)}</span></div>
+        <button class="hist-row-del" data-action="delete-tx" data-id="${escAttr(t.id)}" data-sales="${escAttr(salesName)}">🗑️ Hapus riwayat ini</button>
+      </div>`;
+    });
+  }
+  el.innerHTML = html;
+}
+
+async function deleteDashboardTx(id, salesName) {
+  if (!confirm('Hapus riwayat transaksi ini? Tindakan ini tidak bisa dibatalkan.')) return;
+  try {
+    await apiCall('deleteTransaction', { id, actorRole: currentUser.role }, 8000);
+  } catch (e) {
+    alert('Gagal menghapus — periksa koneksi internet, lalu coba lagi.');
+    return;
+  }
+  lastDashboardTx = lastDashboardTx.filter(t => t.id !== id);
+  renderSalesBreakdown(salesName);
 }
 
 function syncCartQty(id) {
@@ -3183,9 +3432,13 @@ function showResults() {
 
   // Simpan ke Riwayat — hanya muncul saat sudah login
   if (currentUser) {
+    const tokoOptions = getTokoSuggestions();
     html += `<div class="save-tx-box">
+      <label>Tanggal Kunjungan</label>
+      <input type="date" id="txDateInput" value="${todayStr()}" max="${todayStr()}">
       <label>Nama Toko / Outlet</label>
-      <input type="text" id="txTokoInput" placeholder="cth. Toko Sinar Jaya">
+      <input type="text" id="txTokoInput" placeholder="cth. Toko Sinar Jaya" list="tokoSuggestionsList" autocomplete="off">
+      <datalist id="tokoSuggestionsList">${tokoOptions.map(name => `<option value="${escAttr(name)}"></option>`).join('')}</datalist>
       <button class="save-tx-btn" id="btnSaveTx" onclick="saveTransaction()">💾 Simpan ke Riwayat</button>
       <div class="save-tx-msg" id="saveTxMsg"></div>
     </div>`;
@@ -3326,8 +3579,12 @@ document.getElementById('loginTabs').addEventListener('click', e => {
   document.querySelectorAll('.login-tab').forEach(t => t.classList.toggle('active', t === tab));
   document.getElementById('loginExistingForm').hidden = mode !== 'existing';
   document.getElementById('loginNewForm').hidden = mode !== 'new';
+  document.getElementById('loginResetForm').hidden = true;
   setLoginError('');
 });
+document.getElementById('btnShowResetPin').addEventListener('click', () => showResetPinPanel(true));
+document.getElementById('btnCancelResetPin').addEventListener('click', () => showResetPinPanel(false));
+document.getElementById('btnResetPin').addEventListener('click', attemptResetPin);
 document.getElementById('regRolePick').addEventListener('click', e => {
   const btn = e.target.closest('.login-role-btn');
   if (!btn) return;
@@ -3343,6 +3600,18 @@ document.getElementById('btnOpenSummary').addEventListener('click', () => {
 });
 document.getElementById('btnCloseHistory').addEventListener('click', () => {
   document.getElementById('historyOverlay').hidden = true;
+});
+document.getElementById('historyContent').addEventListener('click', e => {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  const action = target.dataset.action;
+  if (action === 'breakdown') {
+    renderSalesBreakdown(target.dataset.sales);
+  } else if (action === 'back-to-ranking') {
+    renderDashboard(lastDashboardTx);
+  } else if (action === 'delete-tx') {
+    deleteDashboardTx(target.dataset.id, target.dataset.sales);
+  }
 });
 
 // Quote rotation — ganti kutipan tiap kali header kembali terlihat saat scroll ke atas
