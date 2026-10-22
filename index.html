@@ -1289,16 +1289,16 @@ body::before {
 
 /* User bar */
 .user-bar {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; row-gap: 6px;
   padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
   background: var(--surface-alt); border-bottom: 1px solid var(--border);
   font-size: 12.5px;
 }
 .user-bar[hidden] { display: none !important }
-.user-bar-info { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); }
-.user-bar-role { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--primary); color: #fff; }
+.user-bar-info { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; row-gap: 4px; font-weight: 700; color: var(--text); min-width: 0; }
+.user-bar-role { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--primary); color: #fff; white-space: nowrap; }
 .user-bar-role.sales { background: var(--accent); }
-.user-bar-actions { display: flex; gap: 10px; }
+.user-bar-actions { display: flex; gap: 10px; flex-wrap: nowrap; white-space: nowrap; }
 .user-bar-btn { background: none; border: none; color: var(--primary); font-family: var(--font); font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
 
 /* History / dashboard screens */
@@ -1312,6 +1312,13 @@ body::before {
 .hist-row-toko { font-weight: 800; font-size: 13.5px; }
 .hist-row-date { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .hist-row-mid { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-secondary); }
+.hist-row-detail { font-size: 11.5px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+.hist-row-detail b { color: var(--text); font-weight: 700; }
+.hist-row-detail-muted { font-style: italic; opacity: .7; }
+.toko-group { margin-bottom: 20px; }
+.toko-group-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-weight: 800; font-size: 13.5px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+.toko-group-name { min-width: 0; }
+.toko-group-meta { font-size: 11px; color: var(--text-secondary); font-weight: 700; white-space: nowrap; }
 .hist-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
 .rank-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .rank-table th { text-align: left; padding: 8px 6px; color: var(--text-secondary); font-weight: 700; font-size: 11px; border-bottom: 2px solid var(--border); white-space: nowrap; }
@@ -1808,7 +1815,7 @@ function loginSuccess(id, name, role) {
   userBar.hidden = false;
   document.getElementById('userBarName').textContent = name;
   const roleEl = document.getElementById('userBarRole');
-  roleEl.textContent = role === 'supervisor' ? 'Supervisor' : 'Sales';
+  roleEl.textContent = role === 'supervisor' ? 'Supervisor / ASM' : 'Sales';
   roleEl.classList.toggle('sales', role !== 'supervisor');
   document.getElementById('btnOpenSummary').textContent = role === 'supervisor' ? '📊 Dashboard Tim' : '📊 Riwayat Saya';
 }
@@ -1985,6 +1992,7 @@ function saveTransaction() {
     totalDiscount: lastCalc.grandDiscount,
     totalAfter: lastCalc.grandAfter,
     programs: lastCalc.programs,
+    products: lastCalc.products || [],
     pkgName: lastCalc.pkgName,
     visitDate,
     createdAt: new Date().toISOString(),
@@ -2134,6 +2142,9 @@ function renderDashboard(txns) {
 // Per-sales drill-down for the supervisor dashboard: shows that one
 // sales rep's own transactions (newest visit first) with a delete button
 // on each row, in case of a mis-entered visit.
+// Grouped by toko (store) so a supervisor can see, per store, every visit
+// this sales rep made there — what was ordered and which programs applied
+// — not just a flat list of transactions.
 function renderSalesBreakdown(salesName) {
   const el = document.getElementById('historyContent');
   document.getElementById('historyTitle').textContent = `Rincian — ${salesName}`;
@@ -2142,27 +2153,54 @@ function renderSalesBreakdown(salesName) {
     .sort((a, b) => (b.visitDate || b.createdAt || '').localeCompare(a.visitDate || a.createdAt || ''));
   const totalOmset = txns.reduce((s, t) => s + (t.totalAfter || 0), 0);
   const totalDiskon = txns.reduce((s, t) => s + (t.totalDiscount || 0), 0);
-  const tokoSet = new Set(txns.map(t => t.toko));
+
+  const byToko = {};
+  txns.forEach(t => {
+    const key = t.toko || 'Tidak diketahui';
+    if (!byToko[key]) byToko[key] = [];
+    byToko[key].push(t);
+  });
+  // Toko groups ordered by most recent visit first (txns is already sorted
+  // newest-first, so each group's first item is its latest visit).
+  const tokoGroups = Object.entries(byToko).sort((a, b) =>
+    (b[1][0].visitDate || b[1][0].createdAt || '').localeCompare(a[1][0].visitDate || a[1][0].createdAt || ''));
 
   let html = `<div class="back-link" data-action="back-to-ranking">&larr; Kembali ke Peringkat</div>`;
   html += `<div class="sum-cards">
     <div class="sum-card"><div class="sum-card-label">Omset</div><div class="sum-card-value">${FMT(totalOmset)}</div></div>
     <div class="sum-card"><div class="sum-card-label">Potongan</div><div class="sum-card-value">${FMT(totalDiskon)}</div></div>
-    <div class="sum-card"><div class="sum-card-label">Toko Dilayani</div><div class="sum-card-value">${tokoSet.size}</div></div>
+    <div class="sum-card"><div class="sum-card-label">Toko Dilayani</div><div class="sum-card-value">${tokoGroups.length}</div></div>
     <div class="sum-card"><div class="sum-card-label">Jumlah Transaksi</div><div class="sum-card-value">${txns.length}</div></div>
   </div>`;
 
-  html += `<div class="hist-section-title">Riwayat Transaksi</div>`;
-  if (txns.length === 0) {
+  html += `<div class="hist-section-title">Riwayat per Toko</div>`;
+  if (tokoGroups.length === 0) {
     html += `<div class="hist-empty">Belum ada transaksi tersimpan untuk sales ini.</div>`;
   } else {
-    txns.forEach(t => {
-      const date = formatVisitDate(t);
-      html += `<div class="hist-row">
-        <div class="hist-row-top"><span class="hist-row-toko">${t.toko}</span><span class="hist-row-date">${date}</span></div>
-        <div class="hist-row-mid"><span>Total: ${FMT(t.totalAfter)}</span><span>Potongan: -${FMT(t.totalDiscount)}</span></div>
-        <button class="hist-row-del" data-action="delete-tx" data-id="${escAttr(t.id)}" data-sales="${escAttr(salesName)}">🗑️ Hapus riwayat ini</button>
-      </div>`;
+    tokoGroups.forEach(([tokoName, visits]) => {
+      const tokoOmset = visits.reduce((s, t) => s + (t.totalAfter || 0), 0);
+      html += `<div class="toko-group">
+        <div class="toko-group-header">
+          <span class="toko-group-name">🏬 ${tokoName}</span>
+          <span class="toko-group-meta">${visits.length} kunjungan · ${FMT(tokoOmset)}</span>
+        </div>`;
+      visits.forEach(t => {
+        const date = formatVisitDate(t);
+        const products = Array.isArray(t.products) ? t.products : [];
+        const programs = Array.isArray(t.programs) ? t.programs : [];
+        html += `<div class="hist-row">
+          <div class="hist-row-top"><span class="hist-row-toko">${date}</span><span class="hist-row-date">Total: ${FMT(t.totalAfter)}</span></div>
+          <div class="hist-row-mid"><span>Subtotal: ${FMT(t.totalBefore)}</span><span>Potongan: -${FMT(t.totalDiscount)}</span></div>`;
+        html += products.length > 0
+          ? `<div class="hist-row-detail"><b>Produk dipesan:</b> ${products.map(p => p.qty != null ? `${escAttr(p.name)} (${p.qty}${p.unit ? ' ' + escAttr(p.unit) : ''})` : escAttr(p.name)).join(', ')}</div>`
+          : `<div class="hist-row-detail hist-row-detail-muted">Tidak ada rincian produk tersimpan untuk kunjungan ini.</div>`;
+        if (programs.length > 0) {
+          html += `<div class="hist-row-detail"><b>Program dipakai:</b> ${programs.map(p => escAttr(p.name)).join(', ')}</div>`;
+        }
+        html += `<button class="hist-row-del" data-action="delete-tx" data-id="${escAttr(t.id)}" data-sales="${escAttr(salesName)}">🗑️ Hapus riwayat ini</button>
+        </div>`;
+      });
+      html += `</div>`;
     });
   }
   el.innerHTML = html;
@@ -3426,7 +3464,20 @@ function showResults() {
   // as its own "program" line so program-frequency stats in the recap count it too.
   const programsForTx = Object.entries(progTotals).map(([name, total]) => ({ name, total }));
   if (pkgRes) programsForTx.unshift({ name: pkgRes.pkg.name, total: pkgRes.totalDiscount });
-  lastCalc = { channel, grandBefore, grandDiscount, grandAfter, programs: programsForTx, pkgName: pkgRes ? pkgRes.pkg.name : null };
+
+  // Product line items for this visit (so a supervisor can later see exactly
+  // what a store ordered, not just the discount totals).
+  const productsForTx = normalItems.map(it => {
+    const prod = PBY[it.id];
+    return { name: `${prod.n} — ${prod.v}`, qty: it.qty, unit: prod.u, subtotal: it.subtotal };
+  });
+  if (pkgRes) {
+    pkgRes.items.forEach(it => {
+      productsForTx.push({ name: it.label, qty: null, unit: null, subtotal: it.price });
+    });
+  }
+
+  lastCalc = { channel, grandBefore, grandDiscount, grandAfter, programs: programsForTx, products: productsForTx, pkgName: pkgRes ? pkgRes.pkg.name : null };
 
   if (grandDiscount > 0) {
     const pct = ((grandDiscount / grandBefore) * 100).toFixed(1);
@@ -3621,7 +3672,7 @@ document.getElementById('historyContent').addEventListener('click', e => {
 // Quote rotation — ganti kutipan tiap kali header kembali terlihat saat scroll ke atas
 const QUOTES = [
   { text: 'Sales adalah seni membangun hubungan, memahami kebutuhan, dan memberikan solusi, bukan sekadar menekan orang untuk membeli.', author: 'Brian Tracy (Pakar Penjualan & Penulis Buku Laris)' },
-  { text: 'Dalam pengamatan saya, sales adalah orang-orang yang pantang. Pantang akan apa pun yang dilemparkan lapangan kepada mereka. Entah baik atau buruk, manis atau pahit, membanggakan atau memalukan, mengenakan maupun menyakitkan, seperti sak tinju yang tetap berdiri setelah menerima 1001 pukulan.', author: 'Ariel (MDP Sales 41)' },
+  { text: 'Salesmanship yang hebat bukan tentang merasa lebih baik dari orang lain, melainkan tentang dorongan untuk menjadi lebih baik dari diri sendiri setiap harinya.', author: 'Ariel (MDP Sales 41)' },
   { text: 'Orang tidak membeli karena alasan yang kamu miliki, mereka membeli karena alasan yang mereka miliki sendiri.', author: 'Zig Ziglar (Legenda Motivator Penjualan Dunia)' },
   { text: 'Pendengaran yang baik adalah kunci dari penjualan yang hebat. Setiap kali kamu mendengarkan pelanggan dengan tulus, kamu sedang membangun jembatan kepercayaan.', author: "Tom Hopkins (Penulis buku 'How to Master the Art of Selling')" },
   { text: 'Pemasaran adalah tentang memberi tahu dunia bahwa kamu adalah bintang. Penjualan adalah tentang turun ke lapangan dan membuktikannya.', author: "Jeffrey Gitomer (Penulis buku 'The Little Red Book of Selling')" },
