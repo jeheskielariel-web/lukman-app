@@ -1289,17 +1289,39 @@ body::before {
 
 /* User bar */
 .user-bar {
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; row-gap: 6px;
-  padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; row-gap: 8px;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
   background: var(--surface-alt); border-bottom: 1px solid var(--border);
   font-size: 12.5px;
 }
 .user-bar[hidden] { display: none !important }
-.user-bar-info { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; row-gap: 4px; font-weight: 700; color: var(--text); min-width: 0; }
-.user-bar-role { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--primary); color: #fff; white-space: nowrap; }
-.user-bar-role.sales { background: var(--accent); }
-.user-bar-actions { display: flex; gap: 10px; flex-wrap: nowrap; white-space: nowrap; }
-.user-bar-btn { background: none; border: none; color: var(--primary); font-family: var(--font); font-size: 12px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+.user-bar-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.user-bar-avatar {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .2px;
+}
+.user-bar-avatar.sales { background: var(--accent); }
+.user-bar-identity { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.user-bar-name { font-weight: 800; font-size: 13.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 48vw; }
+.user-bar-role {
+  align-self: flex-start; font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px;
+  padding: 2px 8px; border-radius: var(--radius-pill);
+  background: var(--primary-light); color: var(--primary-dark); border: 1px solid rgba(200,16,46,.2); white-space: nowrap;
+}
+.user-bar-role.sales { background: var(--accent-light); color: #8A5C13; border-color: rgba(212,152,42,.3); }
+.user-bar-actions { display: flex; align-items: center; gap: 14px; flex-wrap: nowrap; white-space: nowrap; }
+.user-bar-btn { font-family: var(--font); cursor: pointer; }
+.user-bar-btn.primary {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--primary); color: var(--primary);
+  font-size: 11.5px; font-weight: 800; letter-spacing: .1px;
+  padding: 7px 14px; border-radius: var(--radius-pill);
+}
+.user-bar-btn.primary:active { background: var(--primary-light); }
+.user-bar-btn-icon { width: 13px; height: 13px; flex-shrink: 0; }
+.user-bar-btn.ghost { background: none; border: none; color: var(--text-secondary); font-size: 11.5px; font-weight: 700; padding: 7px 0; }
+.user-bar-btn.ghost:active { color: var(--danger); }
 
 /* History / dashboard screens */
 .sum-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
@@ -1428,12 +1450,22 @@ body::before {
 
 <div class="user-bar" id="userBar" hidden>
   <div class="user-bar-info">
-    <span id="userBarName"></span>
-    <span class="user-bar-role" id="userBarRole"></span>
+    <div class="user-bar-avatar" id="userBarAvatar"></div>
+    <div class="user-bar-identity">
+      <span class="user-bar-name" id="userBarName"></span>
+      <span class="user-bar-role" id="userBarRole"></span>
+    </div>
   </div>
   <div class="user-bar-actions">
-    <button class="user-bar-btn" id="btnOpenSummary"></button>
-    <button class="user-bar-btn" id="btnLogout">Keluar</button>
+    <button class="user-bar-btn primary" id="btnOpenSummary">
+      <svg class="user-bar-btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="2.3" y="11" width="3.2" height="6.7" rx="0.8" fill="currentColor"/>
+        <rect x="8.4" y="6.8" width="3.2" height="10.9" rx="0.8" fill="currentColor"/>
+        <rect x="14.5" y="2.4" width="3.2" height="15.3" rx="0.8" fill="currentColor"/>
+      </svg>
+      <span id="btnOpenSummaryLabel"></span>
+    </button>
+    <button class="user-bar-btn ghost" id="btnLogout">Keluar</button>
   </div>
 </div>
 
@@ -1805,6 +1837,13 @@ function renderLoginRosterOptions() {
   });
 }
 
+function getInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
 function loginSuccess(id, name, role) {
   currentUser = { id, name, role };
   saveLocal('lukman_user', { id, name, role });
@@ -1814,10 +1853,13 @@ function loginSuccess(id, name, role) {
   const userBar = document.getElementById('userBar');
   userBar.hidden = false;
   document.getElementById('userBarName').textContent = name;
+  const avatarEl = document.getElementById('userBarAvatar');
+  avatarEl.textContent = getInitials(name);
+  avatarEl.classList.toggle('sales', role !== 'supervisor');
   const roleEl = document.getElementById('userBarRole');
   roleEl.textContent = role === 'supervisor' ? 'Supervisor / ASM' : 'Sales';
   roleEl.classList.toggle('sales', role !== 'supervisor');
-  document.getElementById('btnOpenSummary').textContent = role === 'supervisor' ? '📊 Dashboard Tim' : '📊 Riwayat Saya';
+  document.getElementById('btnOpenSummaryLabel').textContent = role === 'supervisor' ? 'Dashboard Tim' : 'Riwayat Saya';
 }
 
 async function attemptLoginExisting() {
@@ -2181,7 +2223,7 @@ function renderSalesBreakdown(salesName) {
       const tokoOmset = visits.reduce((s, t) => s + (t.totalAfter || 0), 0);
       html += `<div class="toko-group">
         <div class="toko-group-header">
-          <span class="toko-group-name">🏬 ${tokoName}</span>
+          <span class="toko-group-name">${tokoName}</span>
           <span class="toko-group-meta">${visits.length} kunjungan · ${FMT(tokoOmset)}</span>
         </div>`;
       visits.forEach(t => {
@@ -2193,11 +2235,11 @@ function renderSalesBreakdown(salesName) {
           <div class="hist-row-mid"><span>Subtotal: ${FMT(t.totalBefore)}</span><span>Potongan: -${FMT(t.totalDiscount)}</span></div>`;
         html += products.length > 0
           ? `<div class="hist-row-detail"><b>Produk dipesan:</b> ${products.map(p => p.qty != null ? `${escAttr(p.name)} (${p.qty}${p.unit ? ' ' + escAttr(p.unit) : ''})` : escAttr(p.name)).join(', ')}</div>`
-          : `<div class="hist-row-detail hist-row-detail-muted">Tidak ada rincian produk tersimpan untuk kunjungan ini.</div>`;
+          : `<div class="hist-row-detail hist-row-detail-muted">Rincian produk tidak tersedia — kunjungan ini tersimpan sebelum fitur rincian produk aktif.</div>`;
         if (programs.length > 0) {
           html += `<div class="hist-row-detail"><b>Program dipakai:</b> ${programs.map(p => escAttr(p.name)).join(', ')}</div>`;
         }
-        html += `<button class="hist-row-del" data-action="delete-tx" data-id="${escAttr(t.id)}" data-sales="${escAttr(salesName)}">🗑️ Hapus riwayat ini</button>
+        html += `<button class="hist-row-del" data-action="delete-tx" data-id="${escAttr(t.id)}" data-sales="${escAttr(salesName)}">Hapus Riwayat Ini</button>
         </div>`;
       });
       html += `</div>`;
